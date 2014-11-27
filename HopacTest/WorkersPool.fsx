@@ -23,12 +23,14 @@ module Worker =
                          Mailbox.Alt.take w.Mailbox >>=? fun msg -> 
                             Console.WriteLine( 
                                 sprintf "[%s, TID %d] received %A" w.Name Thread.CurrentThread.ManagedThreadId msg)
+                            // doing something useful with msg here...
                             server() ]
 
         Job.start (server())
 
     let stop w = IVar.fill w.Stop ()
 
+/// Resizable pool of workers listening to a mailbox for tasks
 type Pool<'a>(initCapacity: int) =
     let mailbox = mb<'a>()
     let stop = ivar<unit>()
@@ -39,27 +41,27 @@ type Pool<'a>(initCapacity: int) =
           Mailbox = mailbox
           Stop = ivar() }
 
-    let startWorkers count =
+    let startWorkers count = Job.delay <| fun _ ->
         let newWorkers = List.init count (fun _ -> worker())
-        newWorkers |> List.map Worker.create |> Job.conIgnore |> start |> ignore
-        newWorkers  
+        newWorkers |> List.map Worker.create |> Job.conIgnore >>% newWorkers
 
     let setCapacity workers c =
         match c - List.length workers with
-        | 0 -> workers
-        | x when x > 0 -> workers @ startWorkers x
+        | 0 -> Job.result workers
+        | x when x > 0 -> startWorkers x >>= fun newWorkers -> Job.result (workers @ newWorkers)
         | x -> 
             let victims, rest = workers |> List.take -x
-            victims |> List.map Worker.stop |> Job.conIgnore |> start |> ignore
-            rest
+            victims |> List.map Worker.stop |> Job.conIgnore >>% rest
 
     let pool() = Job.delay <| fun _ ->
         let rec server workers =
-            Alt.select [ IVar.Alt.read stop >>=? fun _ -> printfn "Stopping the pool..."; Job.result()
+            Alt.select [ IVar.Alt.read stop >>=? fun _ -> 
+                            printfn "Stopping the pool..."
+                            setCapacity workers 0 >>% Job.result()
                          MVar.Alt.take capacity >>=? fun c -> 
                             printfn "Changing capacity from %d to %d..." (List.length workers) c
-                            server (setCapacity workers c) ]
-        Job.start (server (startWorkers initCapacity))
+                            setCapacity workers c >>= server ]
+        Job.start (startWorkers initCapacity >>= server)
 
     do start (pool()) 
     member __.Add(msg: 'a) = Mailbox.send mailbox msg |> start
@@ -70,7 +72,7 @@ type Pool<'a>(initCapacity: int) =
 
 let pool = new Pool<int>(3)
 pool.Add 1
-pool.SetCapacity 5
+pool.SetCapacity 1
 //pool.Add 20
 
 seq { 1..1000 } |> Seq.iter (fun i -> pool.Add i)
