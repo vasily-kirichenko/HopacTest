@@ -60,6 +60,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="ExtCore">
+      <HintPath>packages\ExtCore.0.8.43\lib\net40\ExtCore.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Hopac">
       <HintPath>packages\Hopac.0.0.0.31\lib\net45\Hopac.dll</HintPath>
       <Private>True</Private>
