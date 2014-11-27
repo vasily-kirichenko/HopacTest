@@ -8,7 +8,7 @@ open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open System.Threading
 open ExtCore
-
+ 
 type Worker<'a> =
     { Name: string
       Mailbox: Mailbox<'a>
@@ -21,8 +21,8 @@ module Worker =
                             printfn "[%s] stopping" w.Name
                             Job.result()
                          Mailbox.Alt.take w.Mailbox >>=? fun msg -> 
-                            Console.WriteLine( 
-                                sprintf "[%s, TID %d] received %A" w.Name Thread.CurrentThread.ManagedThreadId msg)
+                            //Console.WriteLine( 
+                                //sprintf "[%s, TID %d] received %A" w.Name Thread.CurrentThread.ManagedThreadId msg)
                             // doing something useful with msg here...
                             server() ]
 
@@ -34,7 +34,7 @@ module Worker =
 type Pool<'a>(initCapacity: int) =
     let mailbox = mb<'a>()
     let stop = ivar<unit>()
-    let capacity = mvar<int>()
+    let capacity = ch<int>()
     
     let worker() = 
         { Name = sprintf "worker %s" (Guid.NewGuid().ToString())
@@ -58,23 +58,23 @@ type Pool<'a>(initCapacity: int) =
             Alt.select [ IVar.Alt.read stop >>=? fun _ -> 
                             printfn "Stopping the pool..."
                             setCapacity workers 0 >>% Job.result()
-                         MVar.Alt.take capacity >>=? fun c -> 
+                         Ch.Alt.take capacity >>=? fun c -> 
                             printfn "Changing capacity from %d to %d..." (List.length workers) c
                             setCapacity workers c >>= server ]
         Job.start (startWorkers initCapacity >>= server)
 
     do start (pool()) 
     member __.Add(msg: 'a) = Mailbox.send mailbox msg |> start
-    member __.SetCapacity v = MVar.fill capacity v |> start
+    member __.SetCapacity v = Ch.give capacity v |> start
 
     interface IDisposable with
         member __.Dispose() = IVar.fill stop () |> start
 
 let pool = new Pool<int>(3)
 pool.Add 1
-pool.SetCapacity 1
+pool.SetCapacity 4
 //pool.Add 20
 
-seq { 1..1000 } |> Seq.iter (fun i -> pool.Add i)
+for i in 1..10000000 do pool.Add i
 
 (pool :> IDisposable).Dispose()
