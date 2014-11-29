@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ee091e48-ca72-4faf-b58b-86103cdd758e</ProjectGuid>
+    <ProjectGuid>{EE091E48-CA72-4FAF-B58B-86103CDD758E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>HopacTest</RootNamespace>
     <AssemblyName>HopacTest</AssemblyName>
@@ -25,6 +24,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\HopacTest.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -58,27 +58,25 @@
     <None Include="WorkersPool.fsx" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="BoundedBuffer.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">
       <HintPath>packages\ExtCore.0.8.43\lib\net40\ExtCore.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Hopac">
       <HintPath>packages\Hopac.0.0.0.31\lib\net45\Hopac.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Hopac.Core">
       <HintPath>packages\Hopac.0.0.0.31\lib\net45\Hopac.Core.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
