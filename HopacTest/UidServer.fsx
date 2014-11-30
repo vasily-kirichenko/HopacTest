@@ -8,9 +8,16 @@ open Hopac.Alt.Infixes
 
 let uidServer = Job.delay <| fun _ ->
     let channel = ch()
-    let rec loop value =
-        Ch.give channel value >>. loop (value + 1)
-    Job.start (loop 0) >>% channel
+    Job.iterateServer 0 (fun value ->
+        Ch.give channel value >>% value + 1) >>% 
+    channel
 
-let server = run uidServer 
-run (Ch.take server)
+let server = run uidServer
+
+seq { 1..1000000 }
+|> Seq.map (fun _ -> Ch.take server)
+|> Job.conCollect
+|> run
+|> Seq.sumBy (fun x -> int64 x)
+ 
+run (Job.conCollect [ Ch.take server; Ch.take server ])
