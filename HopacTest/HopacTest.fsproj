@@ -59,6 +59,9 @@
     <None Include="App.config" />
     <Content Include="packages.config" />
     <None Include="BoundedBuffer.fsx" />
+    <None Include="Cells.fsx" />
+    <None Include="AltCell.fsx" />
+    <None Include="UidServer.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">
