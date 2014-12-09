@@ -1,10 +1,9 @@
-﻿#r "packages/Hopac.0.0.0.32/lib/net45/Hopac.Core.dll"
-#r "packages/Hopac.0.0.0.32/lib/net45/Hopac.dll" 
-#r "packages/ExtCore.0.8.43/lib/net40/ExtCore.dll" 
+﻿#load "Header.fsx"
 
 open Hopac 
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
+open Hopac.Infixes
 
 type Pool<'msg, 'res>(degreeOfParallelism: int, source: Alt<'msg>, worker: 'msg -> Job<Choice<'res, 'msg * exn>>) =
     let degreeOfParallelism = MVar.Now.createFull degreeOfParallelism
@@ -13,7 +12,7 @@ type Pool<'msg, 'res>(degreeOfParallelism: int, source: Alt<'msg>, worker: 'msg 
     let failedMessages = mb()
     let getMessage workerCount = 
         let get() = Alt.guard (job {
-            let! dop = MVar.read degreeOfParallelism 
+            let! dop = MVar.read degreeOfParallelism
             return if workerCount < dop then source <|>? failedMessages else Alt.never() })
 
         Alt.choose [ get()
@@ -44,14 +43,6 @@ module Test =
                    return Choice1Of2() }))
 
     
-    let pool = Pool<int, unit>(3, mb, (fun msg -> job {
-                   //printfn "[worker] Received %A. Sleeping..." msg
-                   //do! Timer.Global.sleep (TimeSpan.FromMinutes 10.)
-                   return Choice1Of2()
-                   //printfn "[worker] Received %A. Returning error..." msg
-                   //return Choice2Of2(msg, Exception()) 
-                   }))
-
     for i in 1..1000000 do run (Mailbox.send mb i)
     
 

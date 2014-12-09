@@ -55,6 +55,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Program.fs" />
+    <None Include="Header.fsx" />
     <None Include="WorkersPool2.fsx" />
     <None Include="WorkersPool.fsx" />
     <None Include="WorkersPool2.fsx" />
@@ -65,6 +66,8 @@
     <None Include="AltCell.fsx" />
     <None Include="UidServer.fsx" />
     <None Include="Alts.fsx" />
+    <None Include="BoundedQuantification.fsx" />
+    <None Include="Fib.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">

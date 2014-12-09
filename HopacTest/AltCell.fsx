@@ -1,7 +1,5 @@
-﻿#r "packages/Hopac.0.0.0.31/lib/net45/Hopac.Core.dll"
-#r "packages/Hopac.0.0.0.31/lib/net45/Hopac.dll"
+﻿#load "Header.fsx"
 
-open System
 open Hopac
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
