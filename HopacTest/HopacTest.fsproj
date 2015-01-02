@@ -68,18 +68,21 @@
     <None Include="Alts.fsx" />
     <None Include="BoundedQuantification.fsx" />
     <None Include="Fib.fsx" />
+    <None Include="ParallelDownload.fsx" />
+    <None Include="Joinads.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">
       <HintPath>packages\ExtCore.0.8.43\lib\net40\ExtCore.dll</HintPath>
     </Reference>
     <Reference Include="Hopac">
-      <HintPath>packages\Hopac.0.0.0.32\lib\net45\Hopac.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\Hopac\Libs\Hopac\bin\Release\Hopac.dll</HintPath>
     </Reference>
     <Reference Include="Hopac.Core">
-      <HintPath>packages\Hopac.0.0.0.32\lib\net45\Hopac.Core.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\Hopac\Libs\Hopac.Platform.Net\bin\Release\Hopac.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Hopac.Platform">
+      <HintPath>..\..\Hopac\Libs\Hopac.Platform.Net\bin\Release\Hopac.Platform.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
