@@ -70,6 +70,7 @@
     <None Include="Fib.fsx" />
     <None Include="ParallelDownload.fsx" />
     <None Include="Joinads.fsx" />
+    <None Include="JoinadsOnePlaceBuffer.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">
