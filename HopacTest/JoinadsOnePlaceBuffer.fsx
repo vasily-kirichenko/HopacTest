@@ -2,41 +2,33 @@
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
+open Hopac.Alt.Infixes
 
-let put = ch<string>()
-let get = ch<string>()
-let empty = mb<unit>()
-let contains = mb<string>()
+let put, get, empty, contains = ch(), ch(), ch(), ch()
 
-run (empty <<-+ ())
+// Initially, the buffer is empty
+run (empty <-+ ())
 
-Alt.choose [ put >>= fun s -> empty >>% s >>= fun s -> contains <<-+ s
-             get >>= empty <<-+ () ]   
-
-  match! put, empty, get, contains with 
-  | (s, repl), (), ?, ? -> return react {
-    yield contains.Put(s)
-    yield repl.Reply() }
-  | ?, ?, repl, v -> return react {
-    yield repl.Reply(v)
-    yield empty.Put(()) } }
+Job.foreverServer (
+    Alt.choose [ empty >>.? (put >>= Ch.send contains)
+                 contains >>=? fun v -> Ch.send get v >>. Ch.send empty () ])
+|> run
 
 // Repeatedly try to put value into the buffer
-async { do! Async.Sleep(1000)
-        for i in 0 .. 10 do
+job { do! Async.Sleep 1000
+      for i in 0 .. 10 do
           printfn "putting: %d" i
-          do! put.AsyncCall(string i)
-          do! Async.Sleep(500) }
-|> Async.Start
+          do! put <-- string i
+          do! Async.Sleep 500 }
+|> start
 
 // Repeatedly read values from the buffer and print them
-async { while true do 
-          do! Async.Sleep(250)
-          let! v = get.AsyncCall()
+job { while true do 
+          do! Async.Sleep 250
+          let! v = get
           printfn "got: %s" v }
-|> Async.Start
+|> start
 
 //let onePlaceBuffer() = 
 //  let put = SyncChannel<string, unit>()

@@ -71,10 +71,17 @@
     <None Include="ParallelDownload.fsx" />
     <None Include="Joinads.fsx" />
     <None Include="JoinadsOnePlaceBuffer.fsx" />
+    <None Include="Joinads_Asyncs.fsx" />
+    <None Include="Joinads_ParallelMap.fsx" />
+    <None Include="Joinads_ParallelTreeProcessing.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ExtCore">
       <HintPath>packages\ExtCore.0.8.43\lib\net40\ExtCore.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharpx.Core">
+      <HintPath>packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Hopac">
       <HintPath>..\..\Hopac\Libs\Hopac\bin\Release\Hopac.dll</HintPath>
