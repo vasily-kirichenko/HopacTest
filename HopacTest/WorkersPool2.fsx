@@ -9,24 +9,23 @@ type Pool<'msg, 'res, 'error>(degree: int, source: Alt<'msg>, worker: 'msg -> Jo
     let setDegree = ch<int>() 
     let workDone = ch<Choice<'res, 'msg * 'error>>()
     let failedMessages = mb()
-    
+     
     let pool = Job.iterateServer (degree, 0)  <| fun (degree, usage) ->
-        (setDegree |>>? fun dop -> (dop, usage)) <|>? 
+        (setDegree |>>? fun degree -> degree, usage) <|>? 
         (workDone |>>? fun _ -> degree, usage - 1) <|>?
         (if usage < degree then
-            (source <|>? failedMessages) >>=? fun x -> 
-            Job.delayWith worker x >>= (fun r ->
-                match r with
-                | Choice1Of2 _ -> Job.result r
-                | Choice2Of2 (msg, _) -> failedMessages <<-+ msg >>% r) >>= fun r ->
-                workDone <-- r
+            source <|>? failedMessages 
+            >>=? fun msg -> 
+            job {
+                let! result = worker msg 
+                match result with
+                | Choice2Of2 (msg, _) -> do! failedMessages <<-+ msg
+                | _ -> ()
+                do! workDone <-- result }
             |> Job.queue
             >>% (degree, usage + 1)
-         else 
-            Alt.never()) 
-            
+         else Alt.never()) 
     do start pool
-    
     member __.SetDegree value = setDegree <-+ value |> run
 
 module Test =
@@ -43,7 +42,7 @@ module Test =
     [1..1000] |> Seq.Con.iterJob (Mailbox.send mb) |> run
     
 
-    pool.SetDegree 1
+    pool.SetDegree 5
     //pool.Add 20
 
 //    for i in 1..10000000 do pool.Add i
