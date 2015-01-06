@@ -14,7 +14,7 @@ type Pool<'msg, 'res, 'error>(degree: int, source: Alt<'msg>, worker: 'msg -> Jo
         (setDegree |>>? fun degree -> degree, usage) <|>? 
         (workDone |>>? fun _ -> degree, usage - 1) <|>?
         (if usage < degree then
-            source <|>? failedMessages 
+            source <~>? failedMessages 
             >>=? fun msg -> 
             job {
                 let! result = worker msg 
@@ -34,12 +34,15 @@ module Test =
 
     let mb = mb<int>()
     
-    let pool = Pool<int, int, exn>(2, mb, (fun msg -> job {
+    let pool = Pool<int, int, string>(2, mb, (fun msg -> job {
                    printfn "[worker] Received %A. Sleeping..." msg
                    do! Timer.Global.timeOut (TimeSpan.FromSeconds 1.)
-                   return Choice1Of2 msg }))
+                   return 
+                       if msg % 3 = 0 
+                       then Choice2Of2 (msg, sprintf "Fail for %d" msg)
+                       else Choice1Of2 msg }))
 
-    [1..1000] |> Seq.Con.iterJob (Mailbox.send mb) |> run
+    [1..10] |> Seq.Con.iterJob (Mailbox.send mb) |> run
     
 
     pool.SetDegree 5
