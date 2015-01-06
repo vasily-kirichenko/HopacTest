@@ -5,9 +5,13 @@ open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Infixes
 
-type Pool<'msg, 'res, 'error>(degree: int, source: Alt<'msg>, worker: 'msg -> Job<Choice<'res, 'msg * 'error>>) =
+type Failure<'a> =
+    | Recoverable of 'a 
+    | Fatal of 'a
+
+type Pool<'msg, 'res, 'error>(degree: int, source: Alt<'msg>, worker: 'msg -> Job<Choice<'res, 'msg * Failure<'error>>>) =
     let setDegree = ch<int>() 
-    let workDone = ch<Choice<'res, 'msg * 'error>>()
+    let workDone = ch<Choice<'res, 'msg * Failure<'error>>>()
     let failedMessages = mb()
      
     let pool = Job.iterateServer (degree, 0)  <| fun (degree, usage) ->
@@ -19,8 +23,9 @@ type Pool<'msg, 'res, 'error>(degree: int, source: Alt<'msg>, worker: 'msg -> Jo
             job {
                 let! result = worker msg 
                 match result with
-                | Choice2Of2 (msg, _) -> do! failedMessages <<-+ msg
-                | _ -> ()
+                | Choice2Of2 (msg, Recoverable _) -> do! failedMessages <<-+ msg
+                | Choice2Of2 (_, Fatal _)
+                | Choice1Of2 _ -> () 
                 do! workDone <-- result }
             |> Job.queue
             >>% (degree, usage + 1)
@@ -38,8 +43,10 @@ module Test =
                    printfn "[worker] Received %A. Sleeping..." msg
                    do! Timer.Global.timeOut (TimeSpan.FromSeconds 1.)
                    return 
-                       if msg % 3 = 0 
-                       then Choice2Of2 (msg, sprintf "Fail for %d" msg)
+                       if msg % 10 = 0 
+                       then Choice2Of2 (msg, Fatal (sprintf "Fatal for %d" msg))
+                       elif msg % 3 = 0 
+                       then Choice2Of2 (msg, Recoverable (sprintf "Recoverable for %d" msg))
                        else Choice1Of2 msg }))
 
     [1..10] |> Seq.Con.iterJob (Mailbox.send mb) |> run
