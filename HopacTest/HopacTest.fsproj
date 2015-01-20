@@ -58,7 +58,6 @@
     <None Include="Header.fsx" />
     <None Include="WorkersPool2.fsx" />
     <None Include="WorkersPool.fsx" />
-    <None Include="WorkersPool2.fsx" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <None Include="BoundedBuffer.fsx" />
@@ -74,6 +73,7 @@
     <None Include="Joinads_Asyncs.fsx" />
     <None Include="Joinads_ParallelMap.fsx" />
     <None Include="Joinads_ParallelTreeProcessing.fsx" />
+    <None Include="ParallelReduce.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Deedle">
@@ -108,13 +108,16 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Hopac">
-      <HintPath>..\..\Hopac\Libs\Hopac\bin\Release\Hopac.dll</HintPath>
+      <HintPath>packages\Hopac.0.0.0.36\lib\net45\Hopac.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Hopac.Core">
-      <HintPath>..\..\Hopac\Libs\Hopac.Platform.Net\bin\Release\Hopac.Core.dll</HintPath>
+      <HintPath>packages\Hopac.0.0.0.36\lib\net45\Hopac.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Hopac.Platform">
-      <HintPath>..\..\Hopac\Libs\Hopac.Platform.Net\bin\Release\Hopac.Platform.dll</HintPath>
+      <HintPath>packages\Hopac.0.0.0.36\lib\net45\Hopac.Platform.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MathNet.Numerics">
       <HintPath>packages\MathNet.Numerics.3.0.0\lib\net40\MathNet.Numerics.dll</HintPath>

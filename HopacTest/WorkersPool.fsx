@@ -74,3 +74,18 @@ pool.SetCapacity 4
 for i in 1..10000000 do pool.Add i
 
 (pool :> IDisposable).Dispose()
+
+//type Mood = Sad | Awesome
+//
+//type Person = { Mood: Mood }
+//let getCurrentPerson() = { Mood = Sad }
+//
+//// life motto
+//let you = getCurrentPerson()
+//// stop being sad
+//let you =
+//    match you.Mood with
+//    | Sad -> { you with Mood = Awesome }
+//    | _ -> you
+
+

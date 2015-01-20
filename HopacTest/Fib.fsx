@@ -14,7 +14,7 @@ let rec fib n =
 
 let hfib_jobs = ref 0L
 
-let rec hfib (n, level) = Job.delay <| fun () ->
+let rec hfib (n, level) = Job.delay <| fun _ ->
   hfib_jobs := !hfib_jobs + 1L
   if n < 2L then
     Job.result n
@@ -22,6 +22,28 @@ let rec hfib (n, level) = Job.delay <| fun () ->
   else
     hfib (n-2L, level) <*> hfib (n-1L, level) |>> fun (x, y) ->
     x + y
+
+let hfib_promise_jobs = ref 0L
+
+let rec hfibp (n, level) =
+  hfib_promise_jobs := !hfib_promise_jobs + 1L
+  if n < 2L then
+    Job.result n
+  elif n < level then Job.result (fib n)
+  else
+    hfibp (n-2L, level) |> Promise.start >>= fun n2p ->
+    hfibp (n-1L, level) >>= fun n1 ->
+    n2p |>> fun n2 -> n2 + n1
+
+let hfib_opt_jobs = ref 0L
+
+let rec hfibopt (n, level) =
+  hfib_opt_jobs := !hfib_opt_jobs + 1L
+  if n < 2L then Job.result n
+  elif n < level then Job.result (fib n)
+  else
+    hfibopt (n-2L, level) <*> Job.delayWith hfibopt (n-1L, level) |>> fun (n2, n1) ->
+    n2 + n1
 
 let afib_asyncs = ref 0L
 
@@ -36,15 +58,6 @@ let rec afib (n, level) = async {
     let! n2 = n2a
     return n2 + n1
 }
-
-let rec acfib (n, level) =
-  if n < 2L then async.Return n
-  elif n < level then async.Return (fib n)
-  else
-    let n2aa = acfib (n-2L, level) |> Async.StartChild
-    async.Bind (n2aa, (fun n2a ->  
-        async.Bind(acfib (n-1L, level), fun n1 -> 
-            async.Bind (n2a, fun n2 -> async.Return (n2 + n1)))))
 
 let tfib_tasks = ref 0L
 
@@ -65,7 +78,7 @@ let time f =
     w.ElapsedMilliseconds
 
 let n = 42L
-let levels = [11L..18L]
+let levels = [7L..12L]
 let go name f =
     levels
     |> List.map (fun level -> printfn "%s (level = %d)" name level; level, time (fun _ -> f (n, level)))
@@ -74,21 +87,25 @@ let go name f =
 hfib_jobs := 0L
 afib_asyncs := 0L
 tfib_tasks := 0L
-["fib", (fun (n, _) -> fib n)
- //"hfib", hfib >> run ]
+hfib_promise_jobs := 0L
+hfib_opt_jobs := 0L
+let sfib_time = time (fun _ -> fib n)
+(levels |> List.map (fun level -> level, sfib_time) |> fun data -> Chart.Line (data, Name = "fib")) ::
+([//"hfib", hfib >> run 
+  //"hfibp", hfibp >> run
+  "hfibopt", hfibopt >> run]
  //"afib", afib >> Async.RunSynchronously] 
- "acfib", acfib >> Async.RunSynchronously] 
  //"tfib", tfib ]
-|> List.map (fun (name, f) -> go name f)
+|> List.map (fun (name, f) -> go name f))
 |> Chart.Combine
 
 fib 42L
 hfib (42L, 9L) |> run
+hfibopt (42L, 9L) |> run
 afib (42L, 17L) |> Async.RunSynchronously
-acfib (30L, 20L) |> Async.RunSynchronously
 tfib (42L, 11L)
- 
-!hfib_jobs, !afib_asyncs, !tfib_tasks
+  
+!hfib_jobs, !hfib_promise_jobs, !hfib_opt_jobs, !afib_asyncs, !tfib_tasks
 
 
 
